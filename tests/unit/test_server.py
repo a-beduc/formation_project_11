@@ -190,6 +190,23 @@ class TestPurchasePlaces:
         assert response.status_code == 200
 
 
+class TestBoard:
+    def test_get_board_valid_club(self, client, mock_data):
+        club = 'test_club_2_pts'
+        response = client.get(f"/board/{club}")
+        assert response.status_code == 200
+
+    def test_get_board_invalid_club(self, client, mock_data):
+        club = 'bad_club_name'
+        response = client.get(f"/board/{club}")
+        assert response.status_code == 302
+
+    def test_get_board_no_club(self, client, mock_data):
+        club = ''
+        response = client.get(f"/board/{club}")
+        assert response.status_code == 404
+
+
 class TestLogout:
     def test_logout(self, client):
         response = client.get("/logout")
