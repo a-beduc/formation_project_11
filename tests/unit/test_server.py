@@ -13,15 +13,20 @@ def client():
 
 
 @pytest.fixture
+def maximum_places_authorized():
+    return 12
+
+
+@pytest.fixture
 def mock_data(mocker):
     test_clubs = [
         {
-            "name": "test_name_1",
+            "name": "test_club_2_pts",
             "email": "test_mail@test.test",
             "points": "2"
         },
         {
-            "name": "test_name_2",
+            "name": "test_club_16_pts",
             "email": "test_mail2@test.test",
             "points": "16"
         }
@@ -74,7 +79,7 @@ class TestBook:
     def test_get_book_valid_club_and_valid_competition(self, client,
                                                        mock_data):
         competition = 'test_competition_future'
-        club = 'test_name_1'
+        club = 'test_club_2_pts'
         response = client.get(f"/book/{competition}/{club}")
         assert response.status_code == 200
 
@@ -86,7 +91,7 @@ class TestPurchasePlaces:
 
     def test_post_purchase_places(self, client, mock_data):
         data = {'competition': 'test_competition_future',
-                'club': 'test_name_1',
+                'club': 'test_club_2_pts',
                 'places': '1'}
         clubs, competitions = mock_data
         competition = next(
@@ -102,7 +107,7 @@ class TestPurchasePlaces:
     def test_post_purchase_places_more_than_club_points(self, client,
                                                         mock_data):
         data = {'competition': 'test_competition_future',
-                'club': 'test_name_1',
+                'club': 'test_club_2_pts',
                 'places': '5'}
         clubs, competitions = mock_data
         club = next(
@@ -119,6 +124,23 @@ class TestPurchasePlaces:
         assert (number_of_places_after ==
                 number_of_places_before -
                 min(int(data['places']), club_points))
+        assert response.status_code == 200
+
+    def test_post_purchase_places_more_than_maximum_authorized(
+            self, client, mock_data, maximum_places_authorized):
+        data = {'competition': 'test_competition_future',
+                'club': 'test_club_16_pts',
+                'places': str(maximum_places_authorized + 1)}
+        clubs, competitions = mock_data
+        competition = next(
+            c for c in competitions if c['name'] == data['competition']
+        )
+        number_of_places_before = int(competition['numberOfPlaces'])
+        response = client.post("/purchasePlaces", data=data)
+        number_of_places_after = int(competition['numberOfPlaces'])
+
+        assert (number_of_places_after ==
+                number_of_places_before - maximum_places_authorized)
         assert response.status_code == 200
 
 
