@@ -83,6 +83,12 @@ class TestBook:
         response = client.get(f"/book/{competition}/{club}")
         assert response.status_code == 200
 
+    def test_get_book_past_competition(self, client, mock_data):
+        competition = 'test_competition_past'
+        club = 'test_club_2_pts'
+        response = client.get(f"/book/{competition}/{club}")
+        assert response.status_code == 302
+
 
 class TestPurchasePlaces:
     def test_get_purchase_places(self, client, mock_data):
@@ -141,6 +147,21 @@ class TestPurchasePlaces:
 
         assert (number_of_places_after ==
                 number_of_places_before - maximum_places_authorized)
+        assert response.status_code == 200
+
+    def test_post_purchase_places_past_competition(self, client, mock_data):
+        data = {'competition': 'test_competition_past',
+                'club': 'test_club_2_pts',
+                'places': '1'}
+        clubs, competitions = mock_data
+        competition = next(
+            c for c in competitions if c['name'] == data['competition']
+        )
+        number_of_places_before = int(competition['numberOfPlaces'])
+        response = client.post("/purchasePlaces", data=data)
+        number_of_places_after = int(competition['numberOfPlaces'])
+
+        assert number_of_places_after == number_of_places_before
         assert response.status_code == 200
 
 
