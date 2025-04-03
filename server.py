@@ -8,6 +8,8 @@ app.secret_key = 'something_special'
 competitions = load_competitions()
 clubs = load_clubs()
 
+MAXIMUM_PLACES_AUTHORIZED = 12
+
 
 @app.route('/')
 def index():
@@ -60,7 +62,9 @@ def purchase_places():
     form_club = request.form.get('club', None)
     club = next((c for c in clubs if c['name'] == form_club), None)
 
-    places_required = min(int(request.form['places']), int(club['points']))
+    places_required = min(MAXIMUM_PLACES_AUTHORIZED,
+                          int(request.form['places']),
+                          int(club['points']))
     competition['numberOfPlaces'] = int(
         competition['numberOfPlaces']) - places_required
     flash('Great-booking complete!')
