@@ -18,19 +18,23 @@ def index():
 
 @app.route('/showSummary', methods=['GET', 'POST'])
 def show_summary():
-    if request.method == 'GET':
-        return redirect(url_for('index'))
+    if request.method == 'POST':
+        email = request.form.get('email', None)
+        if not email:
+            flash(f"You need to enter an e-mail address.")
+            return redirect(url_for('index'))
 
-    email = request.form.get('email', None)
-    if not email:
-        flash(f"You need to enter an e-mail address.")
-        return redirect(url_for('index'))
+        club = next((club for club in clubs if club['email'] == email), None)
 
-    club = next((club for club in clubs if club['email'] == email), None)
+        if not club:
+            flash(f"No club in database with the e-mail : {email}")
+            return redirect(url_for('index'))
 
-    if not club:
-        flash(f"No club in database with the e-mail : {email}")
-        return redirect(url_for('index'))
+    else:
+        club_name = request.args.get('club', None)
+        club = next((c for c in clubs if c['name'] == club_name), None)
+        if not club:
+            return redirect(url_for('index'))
 
     return render_template('welcome.html',
                            club=club,
