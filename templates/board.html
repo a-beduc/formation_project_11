@@ -1,0 +1,28 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board || GUDLFT</title>
+</head>
+<body>
+<!--    <p>Connected as {{ club['name'] }}</p>-->
+    <h2>Table board :</h2>
+    <p><a href="{{ url_for('show_summary', club=club['name']) }}">Back</a></p>
+    <table>
+        <tr>
+            <th>
+                Clubs
+            </th>
+            <th>
+                Points
+            </th>
+        </tr>
+        {% for club in clubs %}
+            <tr>
+                <td>{{ club['name'] }}</td>
+                <td>{{ club['points'] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

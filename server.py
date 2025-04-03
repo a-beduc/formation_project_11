@@ -104,7 +104,16 @@ def purchase_places():
                            clubs=clubs)
 
 
-# TODO: Add route for points display
+@app.route('/board/<club>', methods=['GET'])
+def board(club):
+    club_found = next((c for c in clubs if c['name'] == club), None)
+    if club_found:
+        return render_template('board.html',
+                               club=club_found,
+                               competitions=competitions,
+                               clubs=clubs)
+    else:
+        return redirect(url_for('show_summary', club=club_found))
 
 
 @app.route('/logout')
