@@ -40,7 +40,8 @@ def show_summary():
 
     return render_template('welcome.html',
                            club=club,
-                           competitions=competitions)
+                           competitions=competitions,
+                           clubs=clubs)
 
 
 @app.route('/book/<competition>/<club>')
@@ -66,7 +67,8 @@ def book(competition, club):
         flash("Something went wrong-please try again")
         return render_template('welcome.html',
                                club=club,
-                               competitions=competitions)
+                               competitions=competitions,
+                               clubs=clubs)
 
 
 @app.route('/purchasePlaces', methods=['POST'])
@@ -90,14 +92,16 @@ def purchase_places():
                                competitions=competitions)
 
     places_required = min(MAXIMUM_PLACES_AUTHORIZED,
-                          int(request.form['places']),
+                          max(0, int(request.form['places'])),
                           int(club['points']))
     competition['numberOfPlaces'] = int(
         competition['numberOfPlaces']) - places_required
+    club['points'] = str(int(club['points']) - places_required)
     flash('Great-booking complete!')
     return render_template('welcome.html',
                            club=club,
-                           competitions=competitions)
+                           competitions=competitions,
+                           clubs=clubs)
 
 
 # TODO: Add route for points display
