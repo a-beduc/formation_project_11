@@ -110,7 +110,7 @@ class TestPurchasePlaces:
                 number_of_places_before - int(data['places']))
         assert response.status_code == 200
 
-    def test_post_purchase_places_more_than_club_points(self, client,
+    def test_post_purchase_places_limit_to_club_points(self, client,
                                                         mock_data):
         data = {'competition': 'test_competition_future',
                 'club': 'test_club_2_pts',
@@ -132,7 +132,7 @@ class TestPurchasePlaces:
                 min(int(data['places']), club_points))
         assert response.status_code == 200
 
-    def test_post_purchase_places_more_than_maximum_authorized(
+    def test_post_purchase_places_limit_to_maximum_authorized(
             self, client, mock_data, maximum_places_authorized):
         data = {'competition': 'test_competition_future',
                 'club': 'test_club_16_pts',
@@ -149,7 +149,8 @@ class TestPurchasePlaces:
                 number_of_places_before - maximum_places_authorized)
         assert response.status_code == 200
 
-    def test_post_purchase_places_past_competition(self, client, mock_data):
+    def test_post_purchase_places_block_for_past_competition(
+            self, client, mock_data):
         data = {'competition': 'test_competition_past',
                 'club': 'test_club_2_pts',
                 'places': '1'}
@@ -162,6 +163,30 @@ class TestPurchasePlaces:
         number_of_places_after = int(competition['numberOfPlaces'])
 
         assert number_of_places_after == number_of_places_before
+        assert response.status_code == 200
+
+    def test_post_purchase_places_update_club_and_competition_point(
+            self, client, mock_data):
+        data = {'competition': 'test_competition_future',
+                'club': 'test_club_2_pts',
+                'places': '1'}
+        clubs, competitions = mock_data
+        competition = next(
+            c for c in competitions if c['name'] == data['competition']
+        )
+        club = next(
+            c for c in clubs if c['name'] == data['club']
+        )
+        club_points_before = int(club['points'])
+        number_of_places_before = int(competition['numberOfPlaces'])
+        response = client.post("/purchasePlaces", data=data)
+        club_points_after = int(club['points'])
+        number_of_places_after = int(competition['numberOfPlaces'])
+
+        assert (number_of_places_after ==
+                number_of_places_before - int(data['places']))
+        assert (club_points_after ==
+                club_points_before - int(data['places']))
         assert response.status_code == 200
 
 
