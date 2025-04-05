@@ -41,7 +41,12 @@ def mock_data(mocker):
             "name": "test_competition_future",
             "date": "2030-12-25 18:00:00",
             "numberOfPlaces": "20"
-        }
+        },
+        {
+            "name": "test_competition_2_available_places",
+            "date": "2029-10-10 19:00:00",
+            "numberOfPlaces": "2",
+        },
     ]
     mocker.patch.object(server, 'clubs', test_clubs)
     mocker.patch.object(server, 'competitions', test_competitions)
@@ -147,6 +152,62 @@ class TestPurchasePlaces:
 
         assert (number_of_places_after ==
                 number_of_places_before - maximum_places_authorized)
+        assert response.status_code == 200
+
+    def test_post_purchase_places_empty_places(
+            self, client, mock_data, maximum_places_authorized):
+        data = {'competition': 'test_competition_future',
+                'club': 'test_club_16_pts',
+                'places': ''}
+        clubs, competitions = mock_data
+        competition = next(
+            c for c in competitions if c['name'] == data['competition']
+        )
+        number_of_places_before = int(competition['numberOfPlaces'])
+        response = client.post("/purchasePlaces", data=data)
+        number_of_places_after = int(competition['numberOfPlaces'])
+
+        assert number_of_places_after == number_of_places_before
+        assert response.status_code == 200
+
+    def test_post_purchase_places_no_places(
+            self, client, mock_data, maximum_places_authorized):
+        data = {'competition': 'test_competition_future',
+                'club': 'test_club_16_pts'}
+        clubs, competitions = mock_data
+        competition = next(
+            c for c in competitions if c['name'] == data['competition']
+        )
+        number_of_places_before = int(competition['numberOfPlaces'])
+        response = client.post("/purchasePlaces", data=data)
+        number_of_places_after = int(competition['numberOfPlaces'])
+
+        assert number_of_places_after == number_of_places_before
+        assert response.status_code == 200
+
+    def test_post_purchase_places_more_places_than_competition_has(
+            self, client, mock_data, maximum_places_authorized):
+        data = {'competition': 'test_competition_2_available_places',
+                'club': 'test_club_16_pts',
+                'places': '5'}
+        clubs, competitions = mock_data
+        competition = next(
+            c for c in competitions if c['name'] == data['competition']
+        )
+        club = next(
+            c for c in clubs if c['name'] == data['club']
+        )
+
+        assert int(club['points']) > int(competition['numberOfPlaces'])
+        number_of_points_before = int(club['points'])
+        number_of_places_before = int(competition['numberOfPlaces'])
+        response = client.post("/purchasePlaces", data=data)
+        number_of_places_after = int(competition['numberOfPlaces'])
+        number_of_points_after = int(club['points'])
+
+        assert (number_of_points_after ==
+                (number_of_points_before - number_of_places_before))
+        assert number_of_places_after == 0
         assert response.status_code == 200
 
     def test_post_purchase_places_block_for_past_competition(
