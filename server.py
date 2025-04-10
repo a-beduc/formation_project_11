@@ -26,7 +26,11 @@ def index():
 
 @app.route('/showSummary',methods=['POST'])
 def showSummary():
-    club = [club for club in clubs if club['email'] == request.form['email']][0]
+    try:
+        club = [club for club in clubs if club['email'] == request.form.get('email')][0]
+    except IndexError:
+        flash('The provided email is not valid.')
+        return render_template('index.html'), 401
     return render_template('welcome.html',club=club,competitions=competitions)
 
 
@@ -57,3 +61,7 @@ def purchasePlaces():
 @app.route('/logout')
 def logout():
     return redirect(url_for('index'))
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
