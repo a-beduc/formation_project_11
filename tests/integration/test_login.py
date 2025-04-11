@@ -6,9 +6,9 @@ def test_login_flow_success(client, mock_clubs, mock_competitions):
                                  data={"email": "001_club@gudlift.com"})
     assert response_login.status_code == 200
 
-    html = response_login.data.decode("utf-8")
-    assert 'Welcome, 001_club@gudlift.com' in html
-    assert 'Competition 001' in html
+    html_response = response_login.data.decode("utf-8")
+    assert 'Welcome, 001_club@gudlift.com' in html_response
+    assert 'Competition 001' in html_response
 
 
 def test_login_flow_failure(client, mock_clubs, mock_competitions):
@@ -19,8 +19,8 @@ def test_login_flow_failure(client, mock_clubs, mock_competitions):
                                  data={"email": "unknown@gudlift.com"})
     assert response_login.status_code == 401
 
-    html = response_login.data.decode("utf-8")
-    assert 'Welcome to the GUDLFT Registration Portal!' in html
+    html_response = response_login.data.decode("utf-8")
+    assert 'Welcome to the GUDLFT Registration Portal!' in html_response
 
 
 def test_logout_flow_success(client, mock_clubs, mock_competitions):
