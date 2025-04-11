@@ -58,3 +58,29 @@ class TestShowSummary:
             assert 'The provided email is not valid.' in html
 
         assert response.status_code == expected_code
+
+
+class TestLogout:
+    @pytest.mark.parametrize(
+        'method, expected_code',
+        [
+            ('GET', 302),
+            ('POST', 405),
+            ('PUT', 405),
+            ('DELETE', 405),
+            ('PATCH', 405),
+        ]
+    )
+    def test_logout_route_methods(self, client, method, expected_code):
+        response = client.open(path='/logout', method=method)
+        assert response.status_code == expected_code
+
+    def test_logout_redirect_to_index(self, client):
+        response = client.get('/logout')
+        assert response.status_code == 302
+
+        response_redirect = client.get('/logout', follow_redirects=True)
+        assert response_redirect.status_code == 200
+
+        html_redirect = response_redirect.data.decode('utf-8')
+        assert 'Welcome to the GUDLFT Registration Portal!' in html_redirect
