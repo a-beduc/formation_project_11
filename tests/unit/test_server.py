@@ -1,37 +1,4 @@
 import pytest
-import server
-
-
-@pytest.fixture
-def client():
-    server.app.config.update({
-        "TESTING": True,
-    })
-    with server.app.test_client() as client:
-        yield client
-
-
-@pytest.fixture
-def mock_clubs(mocker):
-    clubs = [
-        {"name": "Club 001", "email": "001_club@gudlift.com", "points": "13"},
-        {"name": "Club 002", "email": "002_club@gudlift.com", "points": "4"},
-        {"name": "Club 003", "email": "003_club@gudlift.com", "points": "30"},
-    ]
-    mocker.patch.object(server, 'clubs', clubs)
-    return clubs
-
-
-@pytest.fixture
-def mock_competitions(mocker):
-    competitions = [
-        {"name": "Competition 001", "date": "2020-03-27 10:00:00",
-         "numberOfPlaces": "25"},
-        {"name": "Competition 002", "date": "2020-10-22 13:30:00",
-         "numberOfPlaces": "13"}
-    ]
-    mocker.patch.object(server, 'competitions', competitions)
-    return competitions
 
 
 class TestIndex:
@@ -91,3 +58,29 @@ class TestShowSummary:
             assert 'The provided email is not valid.' in html
 
         assert response.status_code == expected_code
+
+
+class TestLogout:
+    @pytest.mark.parametrize(
+        'method, expected_code',
+        [
+            ('GET', 302),
+            ('POST', 405),
+            ('PUT', 405),
+            ('DELETE', 405),
+            ('PATCH', 405),
+        ]
+    )
+    def test_logout_route_methods(self, client, method, expected_code):
+        response = client.open(path='/logout', method=method)
+        assert response.status_code == expected_code
+
+    def test_logout_redirect_to_index(self, client):
+        response = client.get('/logout')
+        assert response.status_code == 302
+
+        response_redirect = client.get('/logout', follow_redirects=True)
+        assert response_redirect.status_code == 200
+
+        html_redirect = response_redirect.data.decode('utf-8')
+        assert 'Welcome to the GUDLFT Registration Portal!' in html_redirect
