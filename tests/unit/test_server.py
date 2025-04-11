@@ -54,10 +54,11 @@ class TestShowSummary:
         response = client.post(path='/showSummary', data=data)
         html = response.data.decode('utf-8')
 
+        assert response.status_code == expected_code
         if expected_code != 200:
             assert 'The provided email is not valid.' in html
-
-        assert response.status_code == expected_code
+        else:
+            assert 'Welcome, {email}'.format(**data) in html
 
 
 class TestLogout:
