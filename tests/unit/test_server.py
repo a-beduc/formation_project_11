@@ -331,6 +331,36 @@ class TestPurchasePlaces:
             assert 'Booking for {competition} || GUDLFT'.format(
                 **data) in html_response
 
+    @pytest.mark.parametrize(
+        'label, data, expected_page, expected_code, expected_flash',
+        [
+            ('#PAST_DATE',
+             {'club': 'Club 001', 'competition': 'Competition 003',
+              'places': 5},
+             'welcome.html',
+             302,
+             "This competition is already over."),
+
+            ('#FUTURE_DATE',
+             {'club': 'Club 001', 'competition': 'Competition 001',
+              'places': 5},
+             'welcome.html',
+             200,
+             'Great-booking complete!'
+             )
+        ]
+    )
+    def test_purchase_places_competition_dates(
+            self, client, mock_clubs, mock_competitions,
+            label, data,
+            expected_page, expected_code, expected_flash):
+        response = client.post("/purchasePlaces", data=data)
+        assert response.status_code == expected_code
+
+        html_response = unescape(response.data.decode("utf-8"))
+        assert expected_flash in html_response
+        assert 'Summary | GUDLFT Registration' in html_response
+
 
 class TestLogout:
     @pytest.mark.parametrize(
