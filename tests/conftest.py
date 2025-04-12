@@ -11,7 +11,7 @@ def client():
         yield client
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_clubs(mocker):
     clubs = [
         {"name": "Club 001", "email": "001_club@gudlift.com", "points": 13},
@@ -22,7 +22,7 @@ def mock_clubs(mocker):
     return clubs
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_competitions(mocker):
     competitions = [
         {"name": "Competition 001", "date": "2020-03-27 10:00:00",
@@ -32,3 +32,10 @@ def mock_competitions(mocker):
     ]
     mocker.patch.object(server, 'competitions', competitions)
     return competitions
+
+
+@pytest.fixture(autouse=True)
+def mock_past_transaction(mocker):
+    past_transaction = {}
+    mocker.patch.object(server, 'PAST_TRANSACTION', past_transaction)
+    return past_transaction

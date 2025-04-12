@@ -1,4 +1,5 @@
 import pytest
+import server
 from html import unescape
 
 
@@ -242,6 +243,14 @@ class TestPurchasePlaces:
              403,
              'Not enough available places for this competition. '
              'Requested : 5, still available : 4'),
+
+            ('#BUY_MORE_THAN_12',
+             {'club': 'Club 001', 'competition': 'Competition 001',
+              'places': 13},
+             'booking.html',
+             403,
+             "Your request exceed the maximum allowed. "
+             "Requested : 13, still allowed 12")
         ]
 
     )
@@ -254,6 +263,69 @@ class TestPurchasePlaces:
         html_response = unescape(response.data.decode("utf-8"))
 
         assert expected_flash in html_response
+
+        if expected_code == 403:
+            assert 'Booking for {competition} || GUDLFT'.format(
+                **data) in html_response
+
+    @pytest.mark.parametrize(
+        'label, data, transaction_cache, '
+        'expected_page, expected_code, expected_flash',
+        [
+            ("#NO_PT",
+             {'club': 'Club 001', 'competition': 'Competition 001',
+              'places': 5},
+             {},
+             'welcome.html',
+             200,
+             'Great-booking complete!'),
+
+            ("#NON_BLOCKING_PT",
+             {'club': 'Club 001', 'competition': 'Competition 001',
+              'places': 5},
+             {('Competition 001', 'Club 001'): 5},
+             'welcome.html',
+             200,
+             'Great-booking complete!'),
+
+            ("#BLOCKING_PT_NOT_MAXED",
+             {'club': 'Club 001', 'competition': 'Competition 001',
+              'places': 5},
+             {('Competition 001', 'Club 001'): 10},
+             'booking.html',
+             403,
+             'Your request exceed the maximum allowed. Requested : 5, still '
+             'allowed 2'),
+
+            ("#BLOCKING_PT_MAXED",
+             {'club': 'Club 001', 'competition': 'Competition 001',
+              'places': 5},
+             {('Competition 001', 'Club 001'): 12},
+             'welcome.html',
+             302,
+             'Your club has already bought 12 places for this competition. '
+             'No more purchases allowed'),
+        ]
+    )
+    def test_purchase_places_good_request_with_past_transaction(
+            self, mocker, client, mock_clubs, mock_competitions,
+            label, data, transaction_cache,
+            expected_page, expected_code, expected_flash):
+
+        mocker.patch.object(server, 'PAST_TRANSACTION', transaction_cache)
+
+        transaction_key = (data['competition'], data['club'])
+        cached_transaction_value = transaction_cache.get(transaction_key, 0)
+
+        response = client.post("/purchasePlaces", data=data)
+        assert response.status_code == expected_code
+
+        html_response = unescape(response.data.decode("utf-8"))
+        assert expected_flash in html_response
+
+        if expected_code == 200:
+            assert (server.PAST_TRANSACTION[transaction_key] ==
+                    cached_transaction_value + data['places'])
 
         if expected_code == 403:
             assert 'Booking for {competition} || GUDLFT'.format(
