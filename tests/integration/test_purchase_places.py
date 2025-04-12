@@ -178,3 +178,28 @@ def test_purchase_7_places_then_5_to_reach_maximum(
     assert second_response_purchase_places.status_code == 200
     assert 'Great-booking complete!' in second_html_response_purchase_places
     assert mock_past_transaction[('Competition 001', 'Club 003')] == 12
+
+
+def test_try_to_purchase_past_competition(
+        client, mock_clubs, mock_competitions):
+    assert mock_competitions[3]['numberOfPlaces'] == 3
+
+    book_url = "/book/Competition 004/Club 001"
+    response_book = client.get(book_url)
+    html_response_book = response_book.data.decode("utf-8")
+
+    assert response_book.status_code == 200
+    assert (f"Booking for {mock_competitions[3]['name']} || GUDLFT"
+            in html_response_book)
+
+    request_args = {'club': 'Club 001', 'competition': 'Competition 004',
+                    'places': '1'}
+    response_purchase_places = client.post('/purchasePlaces',
+                                           data=request_args)
+    html_response_purchase_places = (
+        response_purchase_places.data.decode("utf-8"))
+
+    assert response_purchase_places.status_code == 302
+    assert mock_competitions[3]['numberOfPlaces'] == 3
+    assert 'This competition is already over.' in html_response_purchase_places
+    assert 'Number of Places: 3' in html_response_purchase_places
