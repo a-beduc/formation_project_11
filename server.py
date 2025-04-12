@@ -24,6 +24,10 @@ app.secret_key = 'something_special'
 competitions = loadCompetitions()
 clubs = loadClubs()
 
+MAXIMUM_PLACES_AUTHORIZED = 12
+PAST_TRANSACTION = {}
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -68,6 +72,14 @@ def purchasePlaces():
             flash('You must enter a valid number of places')
             return render_template('booking.html', club=club, competition=competition), 403
 
+        quota_left = MAXIMUM_PLACES_AUTHORIZED - PAST_TRANSACTION.get((competition['name'], club['name']), 0)
+        if quota_left <= 0:
+            flash(f"Your club has already bought {MAXIMUM_PLACES_AUTHORIZED} places for this competition. No more purchases allowed")
+            return render_template('welcome.html', club=club,competitions=competitions), 302
+        if placesRequired > quota_left:
+            flash(f"Your request exceed the maximum allowed. Requested : {placesRequired}, still allowed {quota_left}")
+            return render_template('booking.html', club=club, competition=competition), 403
+
         purchase_power = int(club.get('points', 0))
         if purchase_power < placesRequired:
             flash(f"You don't have enough points to proceed with your request. Requested : {placesRequired}, still allowed : {purchase_power}")
@@ -79,6 +91,9 @@ def purchasePlaces():
             return render_template('booking.html', club=club, competition=competition), 403
 
         competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
+
+        PAST_TRANSACTION.setdefault((competition['name'], club['name']), 0)
+        PAST_TRANSACTION[(competition['name'], club['name'])] += placesRequired
 
         flash('Great-booking complete!')
         return render_template('welcome.html', club=club, competitions=competitions)
