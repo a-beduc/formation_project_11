@@ -128,6 +128,7 @@ def purchasePlaces():
             return render_template('welcome.html', club=club,past_competitions=past_competitions,future_competitions=future_competitions), 302
 
         competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
+        club['points'] = int(club['points']) - placesRequired
 
         PAST_TRANSACTION.setdefault((competition['name'], club['name']), 0)
         PAST_TRANSACTION[(competition['name'], club['name'])] += placesRequired

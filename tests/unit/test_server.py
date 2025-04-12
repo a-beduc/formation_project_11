@@ -361,6 +361,25 @@ class TestPurchasePlaces:
         assert expected_flash in html_response
         assert 'Summary | GUDLFT Registration' in html_response
 
+    def test_purchase_places_points_updated(
+            self, client, mock_clubs, mock_competitions):
+        data = {'club': 'Club 001', 'competition': 'Competition 001',
+                'places': 5}
+        club_points_before = mock_clubs[0]['points']
+        competition_places_before = mock_competitions[0]['numberOfPlaces']
+
+        response = client.post('/purchasePlaces', data=data)
+        html_response = unescape(response.data.decode("utf-8"))
+
+        club_points_after = mock_clubs[0]['points']
+        competition_places_after = mock_competitions[0]['numberOfPlaces']
+
+        assert response.status_code == 200
+        assert 'Great-booking complete!' in html_response
+        assert club_points_after == club_points_before - data['places']
+        assert (competition_places_after ==
+                competition_places_before - data['places'])
+
 
 class TestLogout:
     @pytest.mark.parametrize(

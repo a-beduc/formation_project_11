@@ -9,6 +9,7 @@ def test_purchase_places_flow_success(client, mock_clubs, mock_competitions):
     assert 'Welcome, 001_club@gudlift.com' in html_response_login
     assert 'Competition 001' in html_response_login
     assert mock_competitions[0]['numberOfPlaces'] == 25
+    assert mock_clubs[0]['points'] == 13
     assert 'Number of Places: 25' in html_response_login
 
     book_url = "/book/Competition 001/Club 001"
@@ -28,6 +29,7 @@ def test_purchase_places_flow_success(client, mock_clubs, mock_competitions):
 
     assert response_purchase_places.status_code == 200
     assert mock_competitions[0]['numberOfPlaces'] == 20
+    assert mock_clubs[0]['points'] == 8
     assert 'Great-booking complete!' in html_response_purchase_places
     assert 'Number of Places: 20' in html_response_purchase_places
 
@@ -41,6 +43,7 @@ def test_purchase_places_more_than_club_points(
     assert 'Welcome, 002_club@gudlift.com' in html_response_login
     assert 'Competition 001' in html_response_login
     assert mock_competitions[0]['numberOfPlaces'] == 25
+    assert mock_clubs[1]['points'] == 4
     assert 'Number of Places: 25' in html_response_login
 
     book_url = "/book/Competition 001/Club 002"
@@ -60,6 +63,7 @@ def test_purchase_places_more_than_club_points(
 
     assert response_purchase_places.status_code == 403
     assert mock_competitions[0]['numberOfPlaces'] == 25
+    assert mock_clubs[1]['points'] == 4
     assert (("You don't have enough points to proceed with your request. "
             "Requested : 5, still allowed : 4")
             in html_response_purchase_places)
@@ -75,6 +79,7 @@ def test_purchase_places_more_than_competition_places(
     assert 'Welcome, 001_club@gudlift.com' in html_response_login
     assert 'Competition 002' in html_response_login
     assert mock_competitions[1]['numberOfPlaces'] == 4
+    assert mock_clubs[0]['points'] == 13
     assert 'Number of Places: 4' in html_response_login
 
     book_url = "/book/Competition 002/Club 001"
@@ -94,6 +99,7 @@ def test_purchase_places_more_than_competition_places(
 
     assert response_purchase_places.status_code == 403
     assert mock_competitions[1]['numberOfPlaces'] == 4
+    assert mock_clubs[0]['points'] == 13
     assert (('Not enough available places for this competition. '
             'Requested : 5, still available : 4')
             in html_response_purchase_places)
@@ -104,6 +110,7 @@ def test_purchase_7_places_twice_to_try_to_bypass_maximum(
         client, mock_clubs, mock_competitions, mock_past_transaction):
 
     assert mock_competitions[0]['numberOfPlaces'] == 25
+    assert mock_clubs[2]['points'] == 30
     assert mock_past_transaction == {}
 
     book_url = "/book/Competition 001/Club 003"
@@ -123,6 +130,7 @@ def test_purchase_7_places_twice_to_try_to_bypass_maximum(
 
     assert response_purchase_places.status_code == 200
     assert mock_competitions[0]['numberOfPlaces'] == 18
+    assert mock_clubs[2]['points'] == 23
     assert 'Great-booking complete!' in html_response_purchase_places
     assert 'Number of Places: 18' in html_response_purchase_places
     assert mock_past_transaction[('Competition 001', 'Club 003')] == 7
@@ -139,11 +147,14 @@ def test_purchase_7_places_twice_to_try_to_bypass_maximum(
             in second_html_response_purchase_places)
     assert ('Your request exceed the maximum allowed. Requested : 7, still '
             'allowed 5') in second_html_response_purchase_places
+    assert mock_competitions[0]['numberOfPlaces'] == 18
+    assert mock_clubs[2]['points'] == 23
 
 
 def test_purchase_7_places_then_5_to_reach_maximum(
         client, mock_clubs, mock_competitions, mock_past_transaction):
     assert mock_competitions[0]['numberOfPlaces'] == 25
+    assert mock_clubs[2]['points'] == 30
     assert mock_past_transaction == {}
 
     book_url = "/book/Competition 001/Club 003"
@@ -163,6 +174,7 @@ def test_purchase_7_places_then_5_to_reach_maximum(
 
     assert response_purchase_places.status_code == 200
     assert mock_competitions[0]['numberOfPlaces'] == 18
+    assert mock_clubs[2]['points'] == 23
     assert 'Great-booking complete!' in html_response_purchase_places
     assert 'Number of Places: 18' in html_response_purchase_places
     assert mock_past_transaction[('Competition 001', 'Club 003')] == 7
@@ -178,11 +190,14 @@ def test_purchase_7_places_then_5_to_reach_maximum(
     assert second_response_purchase_places.status_code == 200
     assert 'Great-booking complete!' in second_html_response_purchase_places
     assert mock_past_transaction[('Competition 001', 'Club 003')] == 12
+    assert mock_competitions[0]['numberOfPlaces'] == 13
+    assert mock_clubs[2]['points'] == 18
 
 
 def test_try_to_purchase_past_competition(
         client, mock_clubs, mock_competitions):
     assert mock_competitions[3]['numberOfPlaces'] == 3
+    assert mock_clubs[0]['points'] == 13
 
     book_url = "/book/Competition 004/Club 001"
     response_book = client.get(book_url)
@@ -201,5 +216,6 @@ def test_try_to_purchase_past_competition(
 
     assert response_purchase_places.status_code == 302
     assert mock_competitions[3]['numberOfPlaces'] == 3
+    assert mock_clubs[0]['points'] == 13
     assert 'This competition is already over.' in html_response_purchase_places
     assert 'Number of Places: 3' in html_response_purchase_places
