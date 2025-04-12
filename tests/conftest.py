@@ -1,5 +1,9 @@
 import pytest
 import server
+from datetime import datetime, timedelta
+
+future_d = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+past_d = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
 
 
 @pytest.fixture
@@ -25,12 +29,22 @@ def mock_clubs(mocker):
 @pytest.fixture(autouse=True)
 def mock_competitions(mocker):
     competitions = [
-        {"name": "Competition 001", "date": "2020-03-27 10:00:00",
+        {"name": "Competition 001", "date": future_d,
          "numberOfPlaces": 25},
-        {"name": "Competition 002", "date": "2020-10-22 13:30:00",
-         "numberOfPlaces": 4}
+        {"name": "Competition 002", "date": future_d,
+         "numberOfPlaces": 4},
+        {"name": "Competition 003", "date": past_d,
+         "numberOfPlaces": 9},
+        {"name": "Competition 004", "date": past_d,
+         "numberOfPlaces": 3},
     ]
+    past_competitions_ids = [2, 3]
+    future_competitions_ids = [0, 1]
+
     mocker.patch.object(server, 'competitions', competitions)
+    mocker.patch.object(server, 'past_competitions_ids', past_competitions_ids)
+    mocker.patch.object(server, 'future_competitions_ids',
+                        future_competitions_ids)
     return competitions
 
 

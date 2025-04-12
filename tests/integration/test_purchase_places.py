@@ -127,10 +127,10 @@ def test_purchase_7_places_twice_to_try_to_bypass_maximum(
     assert 'Number of Places: 18' in html_response_purchase_places
     assert mock_past_transaction[('Competition 001', 'Club 003')] == 7
 
-    second_request_args = {'club': 'Club 003', 'competition': 'Competition 001',
-                    'places': '7'}
+    second_request_args = {'club': 'Club 003',
+                           'competition': 'Competition 001', 'places': '7'}
     second_response_purchase_places = client.post('/purchasePlaces',
-                                           data=second_request_args)
+                                                  data=second_request_args)
     second_html_response_purchase_places = (
         second_response_purchase_places.data.decode("utf-8"))
 
