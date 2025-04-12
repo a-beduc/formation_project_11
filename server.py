@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from flask import Flask,render_template,request,redirect,flash,url_for
 
@@ -18,6 +19,24 @@ def loadCompetitions():
         return listOfCompetitions
 
 
+def is_competition_in_past(competition, date=None):
+    time_directive = '%Y-%m-%d %H:%M:%S'
+    time_competition = competition.get('date', None)
+    date = date or datetime.today()
+    return date > datetime.strptime(time_competition, time_directive)
+
+
+def split_competitions_per_dates(competitions_list):
+    past_comps_ids, future_comps_ids = [], []
+    date = datetime.today()
+    for c_id, comp in enumerate(competitions_list):
+        if is_competition_in_past(comp, date=date):
+            past_comps_ids.append(c_id)
+        else:
+            future_comps_ids.append(c_id)
+    return past_comps_ids, future_comps_ids
+
+
 app = Flask(__name__)
 app.secret_key = 'something_special'
 
@@ -27,10 +46,20 @@ clubs = loadClubs()
 MAXIMUM_PLACES_AUTHORIZED = 12
 PAST_TRANSACTION = {}
 
+past_competitions_ids, future_competitions_ids = (
+    split_competitions_per_dates(competitions))
+
+
+def get_split_competitions():
+    past_comps = [competitions[c_id] for c_id in past_competitions_ids]
+    future_comps = [competitions[c_id] for c_id in future_competitions_ids]
+    return past_comps, future_comps
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/showSummary',methods=['POST'])
 def showSummary():
@@ -39,7 +68,8 @@ def showSummary():
     except IndexError:
         flash('The provided email is not valid.')
         return render_template('index.html'), 401
-    return render_template('welcome.html',club=club,competitions=competitions)
+    past_competitions, future_competitions = get_split_competitions()
+    return render_template('welcome.html',club=club,past_competitions=past_competitions,future_competitions=future_competitions)
 
 
 @app.route('/book', defaults={'competition': '', 'club': ''}, strict_slashes=False)
@@ -52,7 +82,8 @@ def book(competition,club):
         return render_template('booking.html',club=foundClub,competition=foundCompetition)
     elif foundClub:
         flash("Something went wrong-please try again")
-        return render_template('welcome.html', club=foundClub, competitions=competitions), 404
+        past_competitions, future_competitions = get_split_competitions()
+        return render_template('welcome.html', club=foundClub, past_competitions=past_competitions,future_competitions=future_competitions), 404
     else:
         flash("Lost connection, please login")
         return redirect(url_for('index'))
@@ -75,7 +106,8 @@ def purchasePlaces():
         quota_left = MAXIMUM_PLACES_AUTHORIZED - PAST_TRANSACTION.get((competition['name'], club['name']), 0)
         if quota_left <= 0:
             flash(f"Your club has already bought {MAXIMUM_PLACES_AUTHORIZED} places for this competition. No more purchases allowed")
-            return render_template('welcome.html', club=club,competitions=competitions), 302
+            past_competitions, future_competitions = get_split_competitions()
+            return render_template('welcome.html', club=club,past_competitions=past_competitions,future_competitions=future_competitions), 302
         if placesRequired > quota_left:
             flash(f"Your request exceed the maximum allowed. Requested : {placesRequired}, still allowed {quota_left}")
             return render_template('booking.html', club=club, competition=competition), 403
@@ -90,16 +122,23 @@ def purchasePlaces():
             flash(f"Not enough available places for this competition. Requested : {placesRequired}, still available : {competition_available}")
             return render_template('booking.html', club=club, competition=competition), 403
 
+        if is_competition_in_past(competition):
+            flash("This competition is already over.")
+            past_competitions, future_competitions = get_split_competitions()
+            return render_template('welcome.html', club=club,past_competitions=past_competitions,future_competitions=future_competitions), 302
+
         competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
 
         PAST_TRANSACTION.setdefault((competition['name'], club['name']), 0)
         PAST_TRANSACTION[(competition['name'], club['name'])] += placesRequired
 
         flash('Great-booking complete!')
-        return render_template('welcome.html', club=club, competitions=competitions)
+        past_competitions, future_competitions = get_split_competitions()
+        return render_template('welcome.html', club=club, past_competitions=past_competitions,future_competitions=future_competitions)
     elif club:
         flash("Something went wrong-please try again")
-        return render_template('welcome.html', club=club, competitions=competitions), 404
+        past_competitions, future_competitions = get_split_competitions()
+        return render_template('welcome.html', club=club, past_competitions=past_competitions,future_competitions=future_competitions), 404
     else:
         flash("Lost connection, please login")
         return redirect(url_for('index'))
