@@ -403,6 +403,26 @@ class TestPurchasePlaces:
                 competition_places_before - data['places'])
 
 
+class TestBoard:
+    @pytest.mark.parametrize(
+        'method, expected_code',
+        [
+            ('GET', 200),
+            ('POST', 405),
+            ('PUT', 405),
+            ('DELETE', 405),
+            ('PATCH', 405),
+        ]
+    )
+    def test_board_route_methods(self, client, method, expected_code):
+        response = client.open(path='/board', method=method)
+        assert response.status_code == expected_code
+
+        response_html = response.data.decode("utf-8")
+        if expected_code == 200:
+            assert "Club Points Board for GUDLFT" in response_html
+
+
 class TestLogout:
     @pytest.mark.parametrize(
         'method, expected_code',
