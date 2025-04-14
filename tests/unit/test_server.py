@@ -3,6 +3,28 @@ import server
 from html import unescape
 
 
+class TestUtils:
+    @pytest.mark.parametrize(
+        'label, competition_index, expected_bool',
+        [
+            ('PAST_COMP', 3, True),
+            ('FUTURE_COMP', 0, False)
+        ]
+    )
+    def test_is_competition_in_past(
+            self, mock_competitions,
+            label, competition_index, expected_bool):
+        sut = server.is_competition_in_past(
+            mock_competitions[competition_index])
+        assert sut == expected_bool
+
+    def test_split_competitions_per_dates(self, mock_competitions):
+        sut_past, sut_future = server.split_competitions_per_dates(
+            mock_competitions)
+        assert sut_past == [2, 3]
+        assert sut_future == [0, 1]
+
+
 class TestIndex:
     @pytest.mark.parametrize(
         'method, expected_code',
