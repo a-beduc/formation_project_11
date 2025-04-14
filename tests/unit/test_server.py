@@ -3,6 +3,28 @@ import server
 from html import unescape
 
 
+class TestUtils:
+    @pytest.mark.parametrize(
+        'label, competition_index, expected_bool',
+        [
+            ('PAST_COMP', 3, True),
+            ('FUTURE_COMP', 0, False)
+        ]
+    )
+    def test_is_competition_in_past(
+            self, mock_competitions,
+            label, competition_index, expected_bool):
+        sut = server.is_competition_in_past(
+            mock_competitions[competition_index])
+        assert sut == expected_bool
+
+    def test_split_competitions_per_dates(self, mock_competitions):
+        sut_past, sut_future = server.split_competitions_per_dates(
+            mock_competitions)
+        assert sut_past == [2, 3]
+        assert sut_future == [0, 1]
+
+
 class TestIndex:
     @pytest.mark.parametrize(
         'method, expected_code',
@@ -379,6 +401,26 @@ class TestPurchasePlaces:
         assert club_points_after == club_points_before - data['places']
         assert (competition_places_after ==
                 competition_places_before - data['places'])
+
+
+class TestBoard:
+    @pytest.mark.parametrize(
+        'method, expected_code',
+        [
+            ('GET', 200),
+            ('POST', 405),
+            ('PUT', 405),
+            ('DELETE', 405),
+            ('PATCH', 405),
+        ]
+    )
+    def test_board_route_methods(self, client, method, expected_code):
+        response = client.open(path='/board', method=method)
+        assert response.status_code == expected_code
+
+        response_html = response.data.decode("utf-8")
+        if expected_code == 200:
+            assert "Club Points Board for GUDLFT" in response_html
 
 
 class TestLogout:
