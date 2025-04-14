@@ -145,6 +145,11 @@ def purchasePlaces():
         return redirect(url_for('index'))
 
 
+@app.route('/board')
+def board():
+    return render_template('board.html', clubs=clubs)
+
+
 # TODO: Add route for points display
 
 
