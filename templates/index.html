@@ -1,18 +1,19 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GUDLFT Registration</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title_block %}
+    GUDLFT Registration
+{% endblock title_block %}
+
+{% block content_block %}
     <h1>Welcome to the GUDLFT Registration Portal!</h1>
-    Please enter your secretary email to continue:
+    <p>Please enter your secretary email to continue:</p>
     <form action="showSummary" method="post">
         <label for="email">Email:</label>
-        <input type="email" name="email" id=""/>
-        <button type="submit">Enter</button>
+        <input type="email" name="email" id="email"/>
+        <button type="submit" id="form-button">Enter</button>
     </form>
-    <a href="{{ url_for('board') }}">Club Points Board</a>
+    <p>
+        <a href="{{ url_for('board') }}">Club Points Board</a>
+    </p>
     {% include 'messages.html' %}
-</body>
-</html>
+{% endblock content_block %}
