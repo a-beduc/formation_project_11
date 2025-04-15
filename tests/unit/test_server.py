@@ -46,8 +46,9 @@ class TestIndex:
         assert ('<h1>Welcome to the GUDLFT Registration Portal!</h1>' in
                 html_response)
         assert '<form action="showSummary" method="post">' in html_response
-        assert '<input type="email" name="email" id=""/>' in html_response
-        assert '<button type="submit">Enter</button>' in html_response
+        assert '<input type="email" name="email" id="email"/>' in html_response
+        assert ('<button type="submit" id="form-button">Enter</button>'
+                in html_response)
 
 
 class TestShowSummary:
