@@ -15,6 +15,11 @@ flask = "*"
 pytest = "*"
 pytest-flask = "*"
 pytest-mock = "*"
+coverage = "*"
+pytest-cov = "*"
+selenium = "*"
+flask-testing = "*"
+locust = "*"
 
 [requires]
 python_version = "3.12"

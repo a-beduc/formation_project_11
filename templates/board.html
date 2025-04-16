@@ -1,29 +1,23 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Club Points Board for GUDLFT</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title_block %}
+    Club Points Board for GUDLFT
+{% endblock title_block %}
+
+{% block content_block %}
     <a href="{{ url_for('index') }}">Back to login</a>
     <h2>Club Point</h2>
     <table>
         <tr>
-            <th>
-                Clubs
-            </th>
-            <th>
-                Points
-            </th>
+            <th>Clubs</th>
+            <th>Points</th>
         </tr>
         {% for club in clubs %}
             <tr>
                 <td>{{ club['name'] }}</td>
-
                 <td>{{ club['points'] }}</td>
             </tr>
         {% endfor %}
     </table>
     {% include 'messages.html' %}
-</body>
-</html>
+{% endblock content_block %}

@@ -46,8 +46,9 @@ class TestIndex:
         assert ('<h1>Welcome to the GUDLFT Registration Portal!</h1>' in
                 html_response)
         assert '<form action="showSummary" method="post">' in html_response
-        assert '<input type="email" name="email" id=""/>' in html_response
-        assert '<button type="submit">Enter</button>' in html_response
+        assert '<input type="email" name="email" id="email"/>' in html_response
+        assert ('<button type="submit" id="form-button">Enter</button>'
+                in html_response)
 
 
 class TestShowSummary:
@@ -233,28 +234,28 @@ class TestPurchasePlaces:
              {'club': 'Club 001', 'competition': 'Competition 001',
               'places': 0},
              'booking.html',
-             403,
-             'You must enter a valid number of places'),
+             200,
+             "You didn't buy any places"),
 
             ('#BUY_WRONG_TYPE',
              {'club': 'Club 001', 'competition': 'Competition 001',
               'places': "not_a_number"},
              'booking.html',
-             403,
+             400,
              'You must enter a valid number of places'),
 
             ('#BUY_NEG',
              {'club': 'Club 001', 'competition': 'Competition 001',
               'places': -5},
              'booking.html',
-             403,
+             400,
              'You must enter a valid number of places'),
 
             ('#BUY_MORE_THAN_CLUB_POINTS',
              {'club': 'Club 002', 'competition': 'Competition 001',
               'places': 8},
              'booking.html',
-             403,
+             400,
              "You don't have enough points to proceed with your request. "
              "Requested : 8, still allowed : 4"),
 
@@ -262,7 +263,7 @@ class TestPurchasePlaces:
              {'club': 'Club 001', 'competition': 'Competition 002',
               'places': 5},
              'booking.html',
-             403,
+             400,
              'Not enough available places for this competition. '
              'Requested : 5, still available : 4'),
 
@@ -270,7 +271,7 @@ class TestPurchasePlaces:
              {'club': 'Club 001', 'competition': 'Competition 001',
               'places': 13},
              'booking.html',
-             403,
+             400,
              "Your request exceed the maximum allowed. "
              "Requested : 13, still allowed 12")
         ]
@@ -286,7 +287,7 @@ class TestPurchasePlaces:
 
         assert expected_flash in html_response
 
-        if expected_code == 403:
+        if expected_code == 400:
             assert 'Booking for {competition} || GUDLFT'.format(
                 **data) in html_response
 
@@ -315,7 +316,7 @@ class TestPurchasePlaces:
               'places': 5},
              {('Competition 001', 'Club 001'): 10},
              'booking.html',
-             403,
+             400,
              'Your request exceed the maximum allowed. Requested : 5, still '
              'allowed 2'),
 
