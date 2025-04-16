@@ -98,10 +98,14 @@ def purchasePlaces():
         try:
             placesRequired = int(request.form.get('places', 0))
         except ValueError:
-            placesRequired = 0
-        if placesRequired <= 0:
+            placesRequired = -1
+        if placesRequired == 0:
+            past_competitions, future_competitions = get_split_competitions()
+            flash("You didn't buy any places")
+            return render_template('welcome.html', club=club, past_competitions=past_competitions, future_competitions=future_competitions), 200
+        if placesRequired < 0:
             flash('You must enter a valid number of places')
-            return render_template('booking.html', club=club, competition=competition), 403
+            return render_template('booking.html', club=club, competition=competition), 400
 
         quota_left = MAXIMUM_PLACES_AUTHORIZED - PAST_TRANSACTION.get((competition['name'], club['name']), 0)
         if quota_left <= 0:
@@ -110,17 +114,17 @@ def purchasePlaces():
             return render_template('welcome.html', club=club,past_competitions=past_competitions,future_competitions=future_competitions), 302
         if placesRequired > quota_left:
             flash(f"Your request exceed the maximum allowed. Requested : {placesRequired}, still allowed {quota_left}")
-            return render_template('booking.html', club=club, competition=competition), 403
+            return render_template('booking.html', club=club, competition=competition), 400
 
         purchase_power = int(club.get('points', 0))
         if purchase_power < placesRequired:
             flash(f"You don't have enough points to proceed with your request. Requested : {placesRequired}, still allowed : {purchase_power}")
-            return render_template('booking.html', club=club, competition=competition), 403
+            return render_template('booking.html', club=club, competition=competition), 400
 
         competition_available = int(competition.get('numberOfPlaces', 0))
         if competition_available < placesRequired:
             flash(f"Not enough available places for this competition. Requested : {placesRequired}, still available : {competition_available}")
-            return render_template('booking.html', club=club, competition=competition), 403
+            return render_template('booking.html', club=club, competition=competition), 400
 
         if is_competition_in_past(competition):
             flash("This competition is already over.")

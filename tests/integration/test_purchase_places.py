@@ -61,7 +61,7 @@ def test_purchase_places_more_than_club_points(
     html_response_purchase_places = unescape(
         response_purchase_places.data.decode("utf-8"))
 
-    assert response_purchase_places.status_code == 403
+    assert response_purchase_places.status_code == 400
     assert mock_competitions[0]['numberOfPlaces'] == 25
     assert mock_clubs[1]['points'] == 4
     assert (("You don't have enough points to proceed with your request. "
@@ -97,7 +97,7 @@ def test_purchase_places_more_than_competition_places(
     html_response_purchase_places = unescape(
         response_purchase_places.data.decode("utf-8"))
 
-    assert response_purchase_places.status_code == 403
+    assert response_purchase_places.status_code == 400
     assert mock_competitions[1]['numberOfPlaces'] == 4
     assert mock_clubs[0]['points'] == 13
     assert (('Not enough available places for this competition. '
@@ -142,7 +142,7 @@ def test_purchase_7_places_twice_to_try_to_bypass_maximum(
     second_html_response_purchase_places = (
         second_response_purchase_places.data.decode("utf-8"))
 
-    assert second_response_purchase_places.status_code == 403
+    assert second_response_purchase_places.status_code == 400
     assert (f"Booking for {mock_competitions[0]['name']} || GUDLFT"
             in second_html_response_purchase_places)
     assert ('Your request exceed the maximum allowed. Requested : 7, still '
