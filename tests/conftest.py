@@ -2,8 +2,12 @@ import pytest
 import server
 from datetime import datetime, timedelta
 
-future_d = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
-past_d = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+
+# Set dynamic test dates: one day on the future and one in the past
+now = datetime.now()
+delta = timedelta(days=1)
+future_d = (now + delta).strftime('%Y-%m-%d %H:%M:%S')
+past_d = (now - delta).strftime('%Y-%m-%d %H:%M:%S')
 
 
 @pytest.fixture

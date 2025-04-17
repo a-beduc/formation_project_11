@@ -1,14 +1,33 @@
+"""
+Unit tests for the main Flask application defined in server.py
+
+This module uses pytest to validate the behavior and content of Flask
+routes, including:
+
+- Login
+- Booking
+- Purchase validation rules
+- Board
+- Logout
+
+Fixtures such as 'client', 'mock_clubs', 'mock_competitions' are defined
+in a 'conftest.py' file and injected by pytest during test.
+"""
+
 import pytest
 import server
 from html import unescape
 
 
 class TestUtils:
+    """
+    Test miscellaneous functions from server.py
+    """
     @pytest.mark.parametrize(
         'label, competition_index, expected_bool',
         [
-            ('PAST_COMP', 3, True),
-            ('FUTURE_COMP', 0, False)
+            ('#PAST_COMP', 3, True),
+            ('#FUTURE_COMP', 0, False)
         ]
     )
     def test_is_competition_in_past(
@@ -26,6 +45,9 @@ class TestUtils:
 
 
 class TestIndex:
+    """
+    This class tests the index route behavior and content.
+    """
     @pytest.mark.parametrize(
         'method, expected_code',
         [
@@ -52,6 +74,9 @@ class TestIndex:
 
 
 class TestShowSummary:
+    """
+    This class tests the /showSummary route behavior and content.
+    """
     @pytest.mark.parametrize(
         'method, expected_code',
         [
@@ -72,11 +97,17 @@ class TestShowSummary:
             ('#NO_EMAIL', {}, 401),
             ('#EMPTY_EMAIL', {'email': ""}, 401),
             ('#WRONG_EMAIL', {'email': 'unknown@email'}, 401),
-            ('#RIGHT_EMAIL', {'email': '001_club@gudlift.com'}, 200)
+            ('#VALID_EMAIL', {'email': '001_club@gudlift.com'}, 200)
         ]
     )
     def test_login_email(self, client, mock_clubs, mock_competitions,
                          label, data, expected_code):
+        """
+        Test login email handling:
+            - No/Empty email
+            - Wrong email
+            - Correct email
+        """
         response = client.post(path='/showSummary', data=data)
         html_response = unescape(response.data.decode('utf-8'))
 
@@ -88,6 +119,9 @@ class TestShowSummary:
 
 
 class TestBook:
+    """
+    This class tests the /book route behavior and content.
+    """
     @pytest.mark.parametrize(
         'method, expected_code',
         [
@@ -129,6 +163,11 @@ class TestBook:
     def test_book_return_expected_content(
             self, client, mock_clubs, mock_competitions,
             label, data, expected_code, expected_page):
+        """
+        Check booking page behavior:
+            - Missing or unknown parameters
+            - Valid parameters
+        """
         club = data.get('club', '')
         competition = data.get('competition', '')
         response = client.get(f"/book/{competition}/{club}")
@@ -154,6 +193,10 @@ class TestBook:
 
 
 class TestPurchasePlaces:
+    """
+    This class tests the /purchasePlaces route behavior, validations,
+    side effects and content.
+    """
     @pytest.mark.parametrize(
         'method, expected_code',
         [
@@ -198,7 +241,10 @@ class TestPurchasePlaces:
     def test_purchase_places_return_expected_content(
             self, client, mock_clubs, mock_competitions,
             label, data, expected_code, expected_page):
-        # add assert for flashed message to anticipate for can't book past comp
+        """
+        Check the proper template and status code are returned based on
+        the input.
+        """
         response = client.post("/purchasePlaces", data=data)
         assert response.status_code == expected_code
 
@@ -275,11 +321,17 @@ class TestPurchasePlaces:
              "Your request exceed the maximum allowed. "
              "Requested : 13, still allowed 12")
         ]
-
     )
     def test_purchase_places_good_request(
             self, client, mock_clubs, mock_competitions,
             label, data, expected_page, expected_code, expected_flash):
+        """
+        Validate expected flash message and page returned for
+        - Valid purchase
+        - 0 places bought
+        - Invalid values
+        - Over quota
+        """
         response = client.post("/purchasePlaces", data=data)
         assert response.status_code == expected_code
 
@@ -334,7 +386,14 @@ class TestPurchasePlaces:
             self, mocker, client, mock_clubs, mock_competitions,
             label, data, transaction_cache,
             expected_page, expected_code, expected_flash):
+        """
+        Check behavior when previous purchases exist:
+        - Still under quota
+        - Exactly at quota with new request
+        - Over quota
+        """
 
+        # Dynamically patch the cache that holds previous transactions
         mocker.patch.object(server, 'PAST_TRANSACTION', transaction_cache)
 
         transaction_key = (data['competition'], data['club'])
@@ -377,6 +436,10 @@ class TestPurchasePlaces:
             self, client, mock_clubs, mock_competitions,
             label, data,
             expected_page, expected_code, expected_flash):
+        """
+        Ensure that booking is blocked for past competitions and succeed
+        for future competitions.
+        """
         response = client.post("/purchasePlaces", data=data)
         assert response.status_code == expected_code
 
@@ -386,6 +449,10 @@ class TestPurchasePlaces:
 
     def test_purchase_places_points_updated(
             self, client, mock_clubs, mock_competitions):
+        """
+        Verify that side effects (club points and competition places)
+        are correctly updated after transaction.
+        """
         data = {'club': 'Club 001', 'competition': 'Competition 001',
                 'places': 5}
         club_points_before = mock_clubs[0]['points']
@@ -405,6 +472,9 @@ class TestPurchasePlaces:
 
 
 class TestBoard:
+    """
+    This class tests the /board route behavior and content.
+    """
     @pytest.mark.parametrize(
         'method, expected_code',
         [
@@ -425,6 +495,9 @@ class TestBoard:
 
 
 class TestLogout:
+    """
+    This class tests the /logout route behavior.
+    """
     @pytest.mark.parametrize(
         'method, expected_code',
         [
