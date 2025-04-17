@@ -2,6 +2,10 @@ from locust import HttpUser, task, constant_throughput
 
 
 class ProjectPerfTest(HttpUser):
+    """
+    Simulates a performance test scenario for the Gudlift application
+    using Locust.
+    """
     wait_time = constant_throughput(10)
     competition = {"name": "Spring Festival",
                    "date": "2030-03-27 10:00:00",
