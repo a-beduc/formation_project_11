@@ -16,10 +16,8 @@ urllib3 = "*"
 pytest = "*"
 pytest-flask = "*"
 pytest-mock = "*"
-coverage = "*"
 pytest-cov = "*"
 selenium = "*"
-flask-testing = "*"
 locust = "*"
 
 [requires]
