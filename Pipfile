@@ -10,6 +10,7 @@ Jinja2 = "*"
 MarkupSafe = "*"
 Werkzeug = "*"
 flask = "*"
+urllib3 = "*"
 
 [dev-packages]
 pytest = "*"
